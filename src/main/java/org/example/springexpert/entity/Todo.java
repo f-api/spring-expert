@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Entity
 @NoArgsConstructor
@@ -15,6 +18,9 @@ public class Todo extends Timestamped {
     private String username;
     private String title;
     private String contents;
+
+    @OneToMany(mappedBy = "todo")
+    private List<Comment> comments = new ArrayList<>();
 
     public Todo(String username, String title, String contents) {
         this.username = username;
