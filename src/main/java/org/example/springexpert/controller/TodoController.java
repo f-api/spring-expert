@@ -3,8 +3,8 @@ package org.example.springexpert.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.springexpert.dto.todo.request.TodoSaveRequestDto;
 import org.example.springexpert.dto.todo.request.TodoUpdateRequestDto;
-import org.example.springexpert.dto.todo.response.TodoDetailResponseDto;
 import org.example.springexpert.dto.todo.response.TodoSimpleResponseDto;
+import org.example.springexpert.dto.todo.response.TodoDetailResponseDto;
 import org.example.springexpert.dto.todo.response.TodoSaveResponseDto;
 import org.example.springexpert.dto.todo.response.TodoUpdateResponseDto;
 import org.example.springexpert.service.TodoService;
@@ -24,7 +24,7 @@ public class TodoController {
     }
 
     @GetMapping("/todos")
-    public ResponseEntity<Page<TodoSimpleResponseDto>> getTodos(
+    public ResponseEntity<Page<TodoDetailResponseDto>> getTodos(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(todoService.getTodos(page, size));
@@ -32,14 +32,14 @@ public class TodoController {
 
     // 최적화한 getTodos
     @GetMapping("/todos/optimized")
-    public ResponseEntity<Page<TodoSimpleResponseDto>> getTodosOptimized(
+    public ResponseEntity<Page<TodoDetailResponseDto>> getTodosOptimized(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(todoService.getTodosOptimized(page, size));
     }
 
     @GetMapping("/todos/{todoId}")
-    public ResponseEntity<TodoDetailResponseDto> getTodo(@PathVariable Long todoId) {
+    public ResponseEntity<TodoSimpleResponseDto> getTodo(@PathVariable Long todoId) {
         return ResponseEntity.ok(todoService.getTodo(todoId));
     }
 

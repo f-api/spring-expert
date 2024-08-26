@@ -51,12 +51,12 @@ public class TodoService {
         );
     }
 
-    public Page<TodoSimpleResponseDto> getTodos(int page, int size) {
+    public Page<TodoDetailResponseDto> getTodos(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
 
-        return todos.map(todo -> new TodoSimpleResponseDto(
+        return todos.map(todo -> new TodoDetailResponseDto(
                 todo.getId(),
                 todo.getUser(),
                 todo.getTitle(),
@@ -67,12 +67,12 @@ public class TodoService {
         ));
     }
 
-    public Page<TodoSimpleResponseDto> getTodosOptimized(int page, int size) {
+    public Page<TodoDetailResponseDto> getTodosOptimized(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
         Page<TodoProjection> todoProjectionPage = todoRepository.findTodosWithCommentCount(pageable);
         return todoProjectionPage.map(todoProjection ->
-                new TodoSimpleResponseDto(
+                new TodoDetailResponseDto(
                         todoProjection.getId(),
                         todoProjection.getUser(),
                         todoProjection.getTitle(),
@@ -84,13 +84,12 @@ public class TodoService {
         );
     }
 
-    public TodoDetailResponseDto getTodo(Long todoId) {
+    public TodoSimpleResponseDto getTodo(Long todoId) {
 
-        Todo todo = todoRepository.findByIdWithUser(todoId).orElseThrow(() -> new NullPointerException("Todo not found"));
+        Todo todo = todoRepository.findById(todoId).orElseThrow(() -> new NullPointerException("Todo not found"));
 
-        return new TodoDetailResponseDto(
+        return new TodoSimpleResponseDto(
                 todo.getId(),
-                todo.getUser(),
                 todo.getTitle(),
                 todo.getContents(),
                 todo.getCreatedAt(),

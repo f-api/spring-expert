@@ -6,9 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-
-import java.util.Optional;
 
 public interface TodoRepository extends JpaRepository<Todo, Long> {
     Page<Todo> findAllByOrderByModifiedAtDesc(Pageable pageable);
@@ -19,8 +16,4 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
             "FROM Todo t " +
             "ORDER BY t.modifiedAt DESC")
     Page<TodoProjection> findTodosWithCommentCount(Pageable pageable);
-
-    // findById의 Todo에서 User를 가져오면 쿼리가 2번 나가므로, JOIN FETCH를 사용하여 한번에 가져오기
-    @Query("SELECT t FROM Todo t JOIN FETCH t.user WHERE t.id = :todoId")
-    Optional<Todo> findByIdWithUser(@Param("todoId") Long todoId);
 }
