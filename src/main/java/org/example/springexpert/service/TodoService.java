@@ -1,19 +1,25 @@
 package org.example.springexpert.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springexpert.dto.todo.projection.TodoProjection;
 import org.example.springexpert.dto.todo.request.TodoSaveRequestDto;
 import org.example.springexpert.dto.todo.request.TodoUpdateRequestDto;
 import org.example.springexpert.dto.todo.response.TodoDetailResponseDto;
-import org.example.springexpert.dto.todo.response.TodoSimpleResponseDto;
 import org.example.springexpert.dto.todo.response.TodoSaveResponseDto;
+import org.example.springexpert.dto.todo.response.TodoSimpleResponseDto;
 import org.example.springexpert.dto.todo.response.TodoUpdateResponseDto;
+import org.example.springexpert.entity.Manager;
 import org.example.springexpert.entity.Todo;
+import org.example.springexpert.entity.User;
+import org.example.springexpert.repository.ManagerRepository;
 import org.example.springexpert.repository.TodoRepository;
+import org.example.springexpert.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 @Service
 @RequiredArgsConstructor
@@ -21,20 +27,23 @@ import org.springframework.transaction.annotation.Transactional;
 public class TodoService {
 
     private final TodoRepository todoRepository;
+    private final UserRepository userRepository;
+    private final ManagerRepository managerRepository;
 
     @Transactional
     public TodoSaveResponseDto saveTodo(TodoSaveRequestDto todoSaveRequestDto) {
+        User user = userRepository.findById(todoSaveRequestDto.getUserId())
+                .orElseThrow(() -> new NullPointerException("User not found"));
 
-        Todo newTodo = new Todo(
-                todoSaveRequestDto.getUsername(),
-                todoSaveRequestDto.getTitle(),
-                todoSaveRequestDto.getContents()
-        );
+        Todo newTodo = new Todo(user, todoSaveRequestDto.getTitle(), todoSaveRequestDto.getContents());
         Todo savedTodo = todoRepository.save(newTodo);
+
+        // 작성자는 일정에 자동 참여하여 담당자가 됩니다.
+        managerRepository.save(new Manager(user, savedTodo));
 
         return new TodoSaveResponseDto(
                 savedTodo.getId(),
-                savedTodo.getUsername(),
+                user,
                 savedTodo.getTitle(),
                 savedTodo.getContents(),
                 savedTodo.getCreatedAt(),
@@ -49,28 +58,39 @@ public class TodoService {
 
         return todos.map(todo -> new TodoSimpleResponseDto(
                 todo.getId(),
+                todo.getUser(),
                 todo.getTitle(),
                 todo.getContents(),
                 todo.getComments().size(),
                 todo.getCreatedAt(),
-                todo.getModifiedAt(),
-                todo.getUsername()
+                todo.getModifiedAt()
         ));
     }
 
     public Page<TodoSimpleResponseDto> getTodosOptimized(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        return todoRepository.findTodosWithCommentCount(pageable);
+        Page<TodoProjection> todoProjectionPage = todoRepository.findTodosWithCommentCount(pageable);
+        return todoProjectionPage.map(todoProjection ->
+                new TodoSimpleResponseDto(
+                        todoProjection.getId(),
+                        todoProjection.getUser(),
+                        todoProjection.getTitle(),
+                        todoProjection.getContents(),
+                        todoProjection.getCommentCount(),
+                        todoProjection.getCreatedAt(),
+                        todoProjection.getModifiedAt()
+                )
+        );
     }
 
     public TodoDetailResponseDto getTodo(Long todoId) {
 
-        Todo todo = todoRepository.findById(todoId).orElseThrow(() -> new NullPointerException("Todo not found"));
+        Todo todo = todoRepository.findByIdWithUser(todoId).orElseThrow(() -> new NullPointerException("Todo not found"));
 
         return new TodoDetailResponseDto(
                 todo.getId(),
-                todo.getUsername(),
+                todo.getUser(),
                 todo.getTitle(),
                 todo.getContents(),
                 todo.getCreatedAt(),
@@ -82,6 +102,13 @@ public class TodoService {
     public TodoUpdateResponseDto updateTodo(Long todoId, TodoUpdateRequestDto todoUpdateRequestDto) {
 
         Todo todo = todoRepository.findById(todoId).orElseThrow(() -> new NullPointerException("Todo not found"));
+        User user = userRepository.findById(todoUpdateRequestDto.getUserId())
+                .orElseThrow(() -> new NullPointerException("User not found"));
+
+        // 작성자 일치 여부 null-safe 비교
+        if (todo.getUser() == null || !ObjectUtils.nullSafeEquals(user.getId(), todo.getUser().getId())) {
+            throw new IllegalArgumentException("작성자가 일치하지 않습니다.");
+        }
 
         todo.update(
                 todoUpdateRequestDto.getTitle(),
@@ -90,7 +117,7 @@ public class TodoService {
 
         return new TodoUpdateResponseDto(
                 todo.getId(),
-                todo.getUsername(),
+                todo.getUser(),
                 todo.getTitle(),
                 todo.getContents(),
                 todo.getCreatedAt(),
@@ -100,6 +127,7 @@ public class TodoService {
 
     @Transactional
     public void deleteTodo(Long todoId) {
+        // TODO: 작성자 확인 로직 추가 (인증 이후 작성 예정)
         todoRepository.deleteById(todoId);
     }
 }

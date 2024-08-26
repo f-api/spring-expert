@@ -8,10 +8,13 @@ import org.example.springexpert.dto.comment.response.CommentSaveResponseDto;
 import org.example.springexpert.dto.comment.response.CommentUpdateResponseDto;
 import org.example.springexpert.entity.Comment;
 import org.example.springexpert.entity.Todo;
+import org.example.springexpert.entity.User;
 import org.example.springexpert.repository.CommentRepository;
 import org.example.springexpert.repository.TodoRepository;
+import org.example.springexpert.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,15 +26,18 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final TodoRepository todoRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public CommentSaveResponseDto saveComment(Long todoId, CommentSaveRequestDto commentSaveRequestDto) {
         Todo todo = todoRepository.findById(todoId)
                 .orElseThrow(() -> new NullPointerException("Todo not found"));
+        User user = userRepository.findById(commentSaveRequestDto.getUserId())
+                .orElseThrow(() -> new NullPointerException("User not found"));
 
         Comment comment = new Comment(
-                commentSaveRequestDto.getUsername(),
                 commentSaveRequestDto.getContents(),
+                user,
                 todo
         );
 
@@ -39,7 +45,7 @@ public class CommentService {
 
         return new CommentSaveResponseDto(
                 savedComment.getId(),
-                savedComment.getUsername(),
+                user,
                 savedComment.getContents(),
                 savedComment.getCreatedAt(),
                 savedComment.getModifiedAt()
@@ -49,13 +55,13 @@ public class CommentService {
 
 
     public List<CommentDetailResponseDto> getComments(Long todoId) {
-        List<Comment> commentList = commentRepository.findByTodoId(todoId);
+        List<Comment> commentList = commentRepository.findByTodoIdWithUser(todoId);
 
         List<CommentDetailResponseDto> dtoList = new ArrayList<>();
         for (Comment comment : commentList) {
             CommentDetailResponseDto dto = new CommentDetailResponseDto(
                     comment.getId(),
-                    comment.getUsername(),
+                    comment.getUser(),
                     comment.getContents(),
                     comment.getCreatedAt(),
                     comment.getModifiedAt()
@@ -72,7 +78,7 @@ public class CommentService {
 
         return new CommentDetailResponseDto(
                 comment.getId(),
-                comment.getUsername(),
+                comment.getUser(),
                 comment.getContents(),
                 comment.getCreatedAt(),
                 comment.getModifiedAt()
@@ -86,6 +92,12 @@ public class CommentService {
     ) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NullPointerException("Comment not found"));
+        User user = userRepository.findById(commentUpdateRequestDto.getUserId())
+                .orElseThrow(() -> new NullPointerException("User not found"));
+
+        if (comment.getUser() == null || !ObjectUtils.nullSafeEquals(user.getId(), comment.getUser().getId())) {
+            throw new IllegalArgumentException("작성자가 일치하지 않습니다.");
+        }
 
         comment.update(
                 commentUpdateRequestDto.getContents()
@@ -93,7 +105,7 @@ public class CommentService {
 
         return new CommentUpdateResponseDto(
                 comment.getId(),
-                comment.getUsername(),
+                user,
                 comment.getContents(),
                 comment.getCreatedAt(),
                 comment.getModifiedAt()
@@ -102,6 +114,7 @@ public class CommentService {
 
     @Transactional
     public void deleteComment(Long commentId) {
+        // TODO: 작성자 확인 로직 추가 (인증 이후 작성 예정)
         commentRepository.deleteById(commentId);
     }
 }

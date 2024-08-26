@@ -12,18 +12,24 @@ import java.util.List;
 @NoArgsConstructor
 public class Todo extends Timestamped {
 
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "todo_id")
     private Long id;
-    private String username;
+
     private String title;
     private String contents;
+
+    // 일정 만든 사람
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "todo", cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 
-    public Todo(String username, String title, String contents) {
-        this.username = username;
+    public Todo(User user, String title, String contents) {
+        this.user = user;
         this.title = title;
         this.contents = contents;
     }

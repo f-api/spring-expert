@@ -4,8 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class TodoSaveRequestDto {
-
-    private String username;
+    private Long userId;
     private String title;
     private String contents;
 }

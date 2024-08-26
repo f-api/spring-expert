@@ -1,6 +1,8 @@
 package org.example.springexpert.dto.comment.response;
 
 import lombok.Getter;
+import org.example.springexpert.dto.user.UserDto;
+import org.example.springexpert.entity.User;
 
 import java.time.LocalDateTime;
 
@@ -8,14 +10,18 @@ import java.time.LocalDateTime;
 public class CommentDetailResponseDto {
 
     private final Long id;
-    private final String username;
+    private final UserDto user;
     private final String contents;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
-    public CommentDetailResponseDto(Long id, String username, String contents, LocalDateTime createdAt, LocalDateTime modifiedAt) {
+    public CommentDetailResponseDto(Long id, User user, String contents, LocalDateTime createdAt, LocalDateTime modifiedAt) {
         this.id = id;
-        this.username = username;
+        this.user = new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail()
+        );
         this.contents = contents;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
