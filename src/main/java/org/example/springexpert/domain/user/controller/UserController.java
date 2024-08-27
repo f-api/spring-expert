@@ -1,10 +1,8 @@
 package org.example.springexpert.domain.user.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.springexpert.domain.user.dto.request.UserSaveRequestDto;
 import org.example.springexpert.domain.user.dto.request.UserUpdateRequestDto;
 import org.example.springexpert.domain.user.dto.response.UserDetailResponseDto;
-import org.example.springexpert.domain.user.dto.response.UserSaveResponseDto;
 import org.example.springexpert.domain.user.dto.response.UserUpdateResponseDto;
 import org.example.springexpert.domain.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +14,6 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-
-    @PostMapping("/users")
-    public UserSaveResponseDto saveUser(@RequestBody UserSaveRequestDto userSaveRequestDto) {
-        return userService.saveUser(userSaveRequestDto);
-    }
 
     @GetMapping("/users")
     public List<UserDetailResponseDto> getUsers() {
