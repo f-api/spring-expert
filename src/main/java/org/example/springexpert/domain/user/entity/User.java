@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.springexpert.domain.common.entity.Timestamped;
+import org.example.springexpert.domain.user.enums.UserRole;
 
 @Getter
 @Entity
@@ -18,10 +19,14 @@ public class User extends Timestamped {
     private String email;
     private String password;
 
-    public User(String username, String email, String password) {
+    @Enumerated(EnumType.STRING)
+    private UserRole userRole;
+
+    public User(String username, String email, String password, UserRole userRole) {
         this.username = username;
         this.email = email;
         this.password = password;
+        this.userRole = userRole;
     }
 
     public void update(String username, String email) {

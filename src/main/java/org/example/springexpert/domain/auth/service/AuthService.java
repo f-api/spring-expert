@@ -9,6 +9,7 @@ import org.example.springexpert.domain.auth.dto.response.SigninResponseDto;
 import org.example.springexpert.domain.auth.dto.response.SignupResponseDto;
 import org.example.springexpert.domain.auth.exception.AuthException;
 import org.example.springexpert.domain.user.entity.User;
+import org.example.springexpert.domain.user.enums.UserRole;
 import org.example.springexpert.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,10 +31,13 @@ public class AuthService {
 
         String encodedPassword = passwordEncoder.encode(signupRequestDto.getPassword());
 
+        UserRole userRole = convertToUserRole(signupRequestDto.getUserRole());
+
         User newUser = new User(
                 signupRequestDto.getUsername(),
                 signupRequestDto.getEmail(),
-                encodedPassword
+                encodedPassword,
+                userRole
         );
 
         User savedUser = userRepository.save(newUser);
@@ -41,10 +45,19 @@ public class AuthService {
         String bearerToken = jwtUtil.createToken(
                 savedUser.getId(),
                 savedUser.getUsername(),
-                savedUser.getEmail()
+                savedUser.getEmail(),
+                savedUser.getUserRole()
         );
 
         return new SignupResponseDto(bearerToken);
+    }
+
+    private UserRole convertToUserRole(String userRoleString) {
+        try {
+            return UserRole.valueOf(userRoleString.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("잘못된 역할 정보입니다: " + userRoleString);
+        }
     }
 
     public SigninResponseDto signin(SigninRequestDto signinRequestDto) {
@@ -58,7 +71,8 @@ public class AuthService {
         String bearerToken = jwtUtil.createToken(
                 user.getId(),
                 user.getUsername(),
-                user.getEmail()
+                user.getEmail(),
+                user.getUserRole()
         );
 
         return new SigninResponseDto(bearerToken);
