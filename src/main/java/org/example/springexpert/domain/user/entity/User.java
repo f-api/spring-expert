@@ -16,10 +16,12 @@ public class User extends Timestamped {
 
     @Column(unique = true) // 이메일은 유니크해야 합니다
     private String email;
+    private String password;
 
-    public User(String username, String email) {
+    public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
+        this.password = password;
     }
 
     public void update(String username, String email) {

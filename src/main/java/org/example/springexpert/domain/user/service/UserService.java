@@ -1,6 +1,8 @@
 package org.example.springexpert.domain.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springexpert.config.JwtUtil;
+import org.example.springexpert.config.PasswordEncoder;
 import org.example.springexpert.domain.user.dto.request.UserSaveRequestDto;
 import org.example.springexpert.domain.user.dto.request.UserUpdateRequestDto;
 import org.example.springexpert.domain.user.dto.response.UserDetailResponseDto;
@@ -20,19 +22,32 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Transactional
     public UserSaveResponseDto saveUser(UserSaveRequestDto userSaveRequestDto) {
-        User newUser = new User(userSaveRequestDto.getUsername(), userSaveRequestDto.getEmail());
+        if (userRepository.existsByEmail(userSaveRequestDto.getEmail())) {
+            throw new IllegalArgumentException("중복된 이메일입니다.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(userSaveRequestDto.getPassword());
+
+        User newUser = new User(
+                userSaveRequestDto.getUsername(),
+                userSaveRequestDto.getEmail(),
+                encodedPassword
+        );
 
         User savedUser = userRepository.save(newUser);
-        return new UserSaveResponseDto(
+
+        String bearerToken = jwtUtil.createToken(
                 savedUser.getId(),
                 savedUser.getUsername(),
-                savedUser.getEmail(),
-                savedUser.getCreatedAt(),
-                savedUser.getModifiedAt()
+                savedUser.getEmail()
         );
+
+        return new UserSaveResponseDto(bearerToken);
     }
 
     public List<UserDetailResponseDto> getUsers() {
