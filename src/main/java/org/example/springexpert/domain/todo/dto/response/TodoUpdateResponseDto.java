@@ -13,6 +13,7 @@ public class TodoUpdateResponseDto {
     private final UserDto user;
     private final String title;
     private final String content;
+    private final String weather;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
@@ -20,7 +21,7 @@ public class TodoUpdateResponseDto {
             Long id,
             User user,
             String title,
-            String content,
+            String content, String weather,
             LocalDateTime createdAt,
             LocalDateTime modifiedAt
     ) {
@@ -32,6 +33,7 @@ public class TodoUpdateResponseDto {
         );
         this.title = title;
         this.content = content;
+        this.weather = weather;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
     }

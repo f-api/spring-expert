@@ -1,6 +1,8 @@
 package org.example.springexpert.domain.todo.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.springexpert.domain.manager.entity.Manager;
+import org.example.springexpert.domain.manager.repository.ManagerRepository;
 import org.example.springexpert.domain.todo.dto.projection.TodoProjection;
 import org.example.springexpert.domain.todo.dto.request.TodoSaveRequestDto;
 import org.example.springexpert.domain.todo.dto.request.TodoUpdateRequestDto;
@@ -8,11 +10,9 @@ import org.example.springexpert.domain.todo.dto.response.TodoDetailResponseDto;
 import org.example.springexpert.domain.todo.dto.response.TodoSaveResponseDto;
 import org.example.springexpert.domain.todo.dto.response.TodoSimpleResponseDto;
 import org.example.springexpert.domain.todo.dto.response.TodoUpdateResponseDto;
-import org.example.springexpert.domain.manager.entity.Manager;
 import org.example.springexpert.domain.todo.entity.Todo;
-import org.example.springexpert.domain.user.entity.User;
-import org.example.springexpert.domain.manager.repository.ManagerRepository;
 import org.example.springexpert.domain.todo.repository.TodoRepository;
+import org.example.springexpert.domain.user.entity.User;
 import org.example.springexpert.domain.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,13 +29,21 @@ public class TodoService {
     private final TodoRepository todoRepository;
     private final UserRepository userRepository;
     private final ManagerRepository managerRepository;
+    private final TodoWeatherService todoWeatherService;
 
     @Transactional
     public TodoSaveResponseDto saveTodo(TodoSaveRequestDto todoSaveRequestDto) {
         User user = userRepository.findById(todoSaveRequestDto.getUserId())
                 .orElseThrow(() -> new NullPointerException("User not found"));
 
-        Todo newTodo = new Todo(user, todoSaveRequestDto.getTitle(), todoSaveRequestDto.getContents());
+        String weather = todoWeatherService.getTodayWeather();
+
+        Todo newTodo = new Todo(
+                user,
+                todoSaveRequestDto.getTitle(),
+                todoSaveRequestDto.getContents(),
+                weather
+        );
         Todo savedTodo = todoRepository.save(newTodo);
 
         // 작성자는 일정에 자동 참여하여 담당자가 됩니다.
@@ -46,6 +54,7 @@ public class TodoService {
                 user,
                 savedTodo.getTitle(),
                 savedTodo.getContents(),
+                savedTodo.getWeather(),
                 savedTodo.getCreatedAt(),
                 savedTodo.getModifiedAt()
         );
@@ -61,6 +70,7 @@ public class TodoService {
                 todo.getUser(),
                 todo.getTitle(),
                 todo.getContents(),
+                todo.getWeather(),
                 todo.getComments().size(),
                 todo.getCreatedAt(),
                 todo.getModifiedAt()
@@ -77,6 +87,7 @@ public class TodoService {
                         todoProjection.getUser(),
                         todoProjection.getTitle(),
                         todoProjection.getContents(),
+                        todoProjection.getWeather(),
                         todoProjection.getCommentCount(),
                         todoProjection.getCreatedAt(),
                         todoProjection.getModifiedAt()
@@ -119,6 +130,7 @@ public class TodoService {
                 todo.getUser(),
                 todo.getTitle(),
                 todo.getContents(),
+                todo.getWeather(),
                 todo.getCreatedAt(),
                 todo.getModifiedAt()
         );

@@ -12,7 +12,7 @@ public interface TodoRepository extends JpaRepository<Todo, Long> {
 
     // 코멘트를 모두 가져오지 않고, 개수만 가져와서 쿼리를 최적화
     @Query("SELECT new org.example.springexpert.domain.todo.dto.projection.TodoProjection( " +
-            "t.id, t.user, t.title, t.contents, SIZE(t.comments), t.createdAt, t.modifiedAt) " +
+            "t.id, t.user, t.title, t.contents, t.weather, SIZE(t.comments), t.createdAt, t.modifiedAt) " +
             "FROM Todo t " +
             "ORDER BY t.modifiedAt DESC")
     Page<TodoProjection> findTodosWithCommentCount(Pageable pageable);

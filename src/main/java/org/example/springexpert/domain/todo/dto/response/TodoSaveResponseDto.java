@@ -13,6 +13,7 @@ public class TodoSaveResponseDto {
     private final UserDto user;
     private final String title;
     private final String contents;
+    private final String weather;
     private final LocalDateTime createdAt;
     private final LocalDateTime modifiedAt;
 
@@ -20,7 +21,7 @@ public class TodoSaveResponseDto {
             Long id,
             User user,
             String title,
-            String contents,
+            String contents, String weather,
             LocalDateTime createdAt,
             LocalDateTime modifiedAt
     ) {
@@ -32,6 +33,7 @@ public class TodoSaveResponseDto {
         );
         this.title = title;
         this.contents = contents;
+        this.weather = weather;
         this.createdAt = createdAt;
         this.modifiedAt = modifiedAt;
     }
