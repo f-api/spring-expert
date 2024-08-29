@@ -35,8 +35,6 @@ public class ManagerService {
         User newTodoUser = userRepository.findById(managerSaveRequestDto.getManagerUserId())
                 .orElseThrow(() -> new NullPointerException("Manager user not found"));
 
-        System.out.println(managerSaveRequestDto.getTodoUserId() + " / " + managerSaveRequestDto.getManagerUserId());
-
         // 일정을 작성한 유저는 추가로 일정 담당 유저들을 배치할 수 있습니다.
         if (todo.getUser() == null || !ObjectUtils.nullSafeEquals(todoUser.getId(), todo.getUser().getId())) {
             throw new IllegalArgumentException("작성자가 일치하지 않습니다.");
